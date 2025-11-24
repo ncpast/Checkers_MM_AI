@@ -5,12 +5,13 @@ import { getPossibleMoves } from './get-possible-moves.js';
 import { movePiece } from './move-piece.js';
 import fs from 'fs';
 
-export function getAllMoves(board, player, generationalArray = [], generation = -1, index = 0) {
+export function getAllMoves(board, player, generation = -1, index = 0, interation = false) {
     console.log(chalk.yellowBright('Starting new cycle. ' + generation));
 
     let pieceIndices = [];
     let validMoves = [];
     let hypotheticalBoards = [];
+    let generationalArray = [];
 
     board.forEach((elem, index) => {
         if (Math.sign(elem) == Math.sign(player)) pieceIndices.push(index);
@@ -40,10 +41,12 @@ export function getAllMoves(board, player, generationalArray = [], generation = 
         }
     });
 
+    /*
     hypotheticalBoards.forEach((elem) => {
-        //console.log(printBoard(elem));
-        //console.log(`SCORE: ${evaluateBoard(elem)}`);
+        console.log(printBoard(elem));
+        console.log(`SCORE: ${evaluateBoard(elem)}`);
     });
+    */
 
     let BoardList = [];
 
@@ -60,12 +63,31 @@ export function getAllMoves(board, player, generationalArray = [], generation = 
 
     generationalArray.push(BoardList);
 
-    if (generation < 1)
-        getAllMoves(board, player * -1, generationalArray, ++generation, ++index)
+    if (generation < 0 && generationalArray) {
+        let ProcessedGens = ProcessGenerations(BoardList, player);
+        generationalArray.push(ProcessedGens);
+    };
+        //getAllMoves(board, player * -1, generationalArray, ++generation, ++index)
 
     fs.writeFile('./assets/moves.json', JSON.stringify(generationalArray, null, 2), 'utf-8', (err)=>{ if (err) console.log(err) });
 
-    return GetHighestScore(BoardList);
+    if (interation == false) {
+        return GetHighestScore(BoardList);
+    } else
+        return BoardList;
+};
+
+function ProcessGenerations(BoardList, player) {
+    let Result = [];
+    
+    BoardList.forEach((elem, index)=>{
+        let Board = elem.board;
+        let Generation = elem.reference.generation != null ? elem.reference.generation + 1 : 0;
+        let Moves = getAllMoves(Board, player * -1, Generation, index, true);
+        Result = Result.concat(Moves);
+    });
+    
+    return Result;
 }
 
 function GetHighestScore(BoardList) {

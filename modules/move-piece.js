@@ -15,6 +15,6 @@ export function movePiece(board, selectedIndex, targetIndex, destroyed) {
         board[targetIndex] = board[selectedIndex];
     board[selectedIndex] = 0;
 
-    console.log(chalk.yellow(`Moving ${selectedIndex} to ${targetIndex}. Destroying ${destroyed}.`))
+    //console.log(chalk.yellow(`Moving ${selectedIndex} to ${targetIndex}. Destroying ${destroyed}.`))
     return board;
 }

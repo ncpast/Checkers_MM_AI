@@ -20,7 +20,7 @@ export async function gameInit(board) {
 }
 
 export async function Move(board, selectedIndex) {
-    console.clear();
+    process.stdout.write('\x1Bc');
     console.log(await terminalImage.file('./assets/icon.png', {width: 36}) + '\n');
     console.log('* Now is your turn.\n');
 
