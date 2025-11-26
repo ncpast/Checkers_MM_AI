@@ -3,9 +3,10 @@ import { printBoard } from './print-board.js';
 import { evaluateBoard } from './evaluate-board.js';
 import { getPossibleMoves } from './get-possible-moves.js';
 import { movePiece } from './move-piece.js';
+import { alphaBeta } from './alpha-beta-pruning.js';
 import fs from 'fs';
 
-export function getAllMoves(board, player, generation = -1, index = 0, interation = false) {
+export function getAllMoves(board, player, generation = -1, index = 0, interation = true, difficulty = 1) {
     console.log(chalk.yellowBright('Starting new cycle. ' + generation));
 
     let pieceIndices = [];
@@ -47,6 +48,7 @@ export function getAllMoves(board, player, generation = -1, index = 0, interatio
         console.log(`SCORE: ${evaluateBoard(elem)}`);
     });
     */
+    
 
     let BoardList = [];
 
@@ -63,15 +65,27 @@ export function getAllMoves(board, player, generation = -1, index = 0, interatio
 
     generationalArray.push(BoardList);
 
-    if (generation < 0 && generationalArray) {
-        let ProcessedGens = ProcessGenerations(BoardList, player);
-        generationalArray.push(ProcessedGens);
+    /* Breadth first search, scrapped because incompatible for Alpha - Beta pruning
+
+    if (interation == true) {
+        for(let i = 0; i < difficulty * 2; i++) {
+            let ProcessedGens = ProcessGenerations(generationalArray[generationalArray.length - 1], player);
+            generationalArray.push(ProcessedGens);
+        };
     };
-        //getAllMoves(board, player * -1, generationalArray, ++generation, ++index)
 
-    fs.writeFile('./assets/moves.json', JSON.stringify(generationalArray, null, 2), 'utf-8', (err)=>{ if (err) console.log(err) });
+    */
 
-    if (interation == false) {
+    // Depth first search
+
+    if (interation == true) {
+        let bestResult = (alphaBeta(BoardList, player));
+        console.log(bestResult)
+    };
+
+    //fs.writeFile('./assets/moves.json', JSON.stringify(generationalArray, null, 2), 'utf-8', (err)=>{ if (err) console.log(err) });
+
+    if (interation) {
         return GetHighestScore(BoardList);
     } else
         return BoardList;
@@ -79,16 +93,16 @@ export function getAllMoves(board, player, generation = -1, index = 0, interatio
 
 function ProcessGenerations(BoardList, player) {
     let Result = [];
-    
+
     BoardList.forEach((elem, index)=>{
         let Board = elem.board;
         let Generation = elem.reference.generation != null ? elem.reference.generation + 1 : 0;
-        let Moves = getAllMoves(Board, player * -1, Generation, index, true);
+        let Moves = getAllMoves(Board, player * -1, Generation, index, false);
         Result = Result.concat(Moves);
     });
     
     return Result;
-}
+};
 
 function GetHighestScore(BoardList) {
     let exportElem = BoardList[0];

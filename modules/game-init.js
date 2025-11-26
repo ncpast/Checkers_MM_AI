@@ -74,7 +74,7 @@ export async function Move(board, selectedIndex) {
                 rl.close()
                 
                 const nextBoard = movePiece(board, selectedIndex, targetIndex, targetDestroyed)
-                let PredictedMove = getAllMoves(new Int8Array(nextBoard), -1);
+                let PredictedMove = getAllMoves(new Int8Array(nextBoard), -1, -1, 0, true, 2);
 
                 const ContinuePrompt = readline.createInterface({ input, output });
                 await ContinuePrompt.question('Press enter to continue.');

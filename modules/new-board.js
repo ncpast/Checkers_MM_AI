@@ -5,7 +5,7 @@ export function createNewGame() {
     //if (i >= 4 && i < 8)
       squares[i] = -1;
 
-  for (let i = 20; i < 32; i++) squares[i] = 1;
+  for (let i = 20; i < 32 -4 -4; i++) squares[i] = 1;
 
   return squares;
 }
