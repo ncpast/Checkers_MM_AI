@@ -5,9 +5,10 @@ import { getPossibleMoves } from './get-possible-moves.js';
 import { movePiece } from './move-piece.js';
 import { alphaBeta } from './alpha-beta-pruning.js';
 import fs from 'fs';
+import { monteCarlo } from './monte-carlo.js';
 
-export function getAllMoves(board, player, generation = -1, index = 0, interation = true, difficulty = 1) {
-    console.log(chalk.yellowBright('Starting new cycle. ' + generation));
+export function getAllMoves(board, player, generation = -1, index = 0, iteration = false, difficulty = 1) {
+    //console.log(chalk.yellowBright('Starting new cycle. ' + generation));
 
     let pieceIndices = [];
     let validMoves = [];
@@ -53,6 +54,7 @@ export function getAllMoves(board, player, generation = -1, index = 0, interatio
     let BoardList = [];
 
     hypotheticalBoards.forEach((elem)=>{
+        /*
         BoardList.push({
             'board': new Int8Array(elem),
             'score': evaluateBoard(elem),
@@ -61,31 +63,41 @@ export function getAllMoves(board, player, generation = -1, index = 0, interatio
                 'index': index
             }
         });
+        */
+       BoardList.push(new Int8Array(elem));
     });
 
     generationalArray.push(BoardList);
 
     /* Breadth first search, scrapped because incompatible for Alpha - Beta pruning
-
-    if (interation == true) {
+    if (iteration) {
         for(let i = 0; i < difficulty * 2; i++) {
             let ProcessedGens = ProcessGenerations(generationalArray[generationalArray.length - 1], player);
-            generationalArray.push(ProcessedGens);
+            generationalArray.push(GetHighestScoreArray(ProcessedGens));
         };
     };
-
     */
+    
 
-    // Depth first search
+    /* Depth first search - HELL
+    Spent 2-3 hours breaking my head on it just for it to loop forever
 
-    if (interation == true) {
+    if (iteration) {
         let bestResult = (alphaBeta(BoardList, player));
         console.log(bestResult)
     };
+    */
+   
+    /* Miserable Monte Carlo attempt. I hate my life. 
+    if (iteration) {
+        let result = monteCarlo(BoardList, player);
+        printBoard(result.board)
+    };
+    */
 
     //fs.writeFile('./assets/moves.json', JSON.stringify(generationalArray, null, 2), 'utf-8', (err)=>{ if (err) console.log(err) });
 
-    if (interation) {
+    if (iteration) {
         return GetHighestScore(BoardList);
     } else
         return BoardList;
@@ -102,6 +114,23 @@ function ProcessGenerations(BoardList, player) {
     });
     
     return Result;
+};
+
+function GetHighestScoreArray(BoardList) {
+    let highestScore = -Infinity;
+
+    BoardList.forEach((elem)=>{
+        if (highestScore < elem.score) {
+            highestScore = elem.score;
+        }; 
+    });
+
+    BoardList.forEach((elem, index)=>{
+        if (elem.score != highestScore)
+            BoardList.splice(index);
+    });
+
+    return BoardList;
 };
 
 function GetHighestScore(BoardList) {

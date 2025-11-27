@@ -7,17 +7,104 @@ import { movePiece } from './move-piece.js';
 import { evaluateBoard } from './evaluate-board.js';
 import { getAllMoves } from './get-all-moves.js';
 import chalk from 'chalk';
-import { json } from 'stream/consumers';
+import { Minimax } from './minimax.js';
+
+const clamp = (x, min, max) => Math.min(Math.max(x, min), max);
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+let Depth = 1;
+let Difficulties = [1, 5, 7, 9];
+let DifficultyIndex = 0;
 
 export async function gameInit(board) {
-    const rl = readline.createInterface({ input, output });
+    await SelectDifficulty();
+    await Move(board);
+};
 
-    try {
-        await rl.question('Press Enter to start the game.');
-    } finally { rl.close(); }
+async function SelectDifficulty() {
+    RenderDifficultySelection();
+    return new Promise((resolve) => {
+        const stdin = process.stdin;
+        stdin.setRawMode(true);
+        stdin.resume();
+        stdin.setEncoding('utf8');
 
-    await Move(board)
+        stdin.on('data', function onKey(key) {
+            switch (key) {
+                case '\u001B\u005B\u0041': // arrow up
+                    DifficultyIndex = clamp(--DifficultyIndex, 0, Difficulties.length - 1);
+                    RenderDifficultySelection();
+                    break;
+                case '\u001B\u005B\u0042': // arrow down
+                    DifficultyIndex = clamp(++DifficultyIndex, 0, Difficulties.length - 1);
+                    RenderDifficultySelection();
+                    break;
+            }
+
+            if (key === '\u000D') { // enter
+                stdin.removeListener('data', onKey);
+                stdin.setRawMode(false);
+
+                Depth = Difficulties[DifficultyIndex];
+                console.log(Depth);
+
+                resolve();                 
+            }
+
+            if (key === '\u0003') process.exit(); // ctrl-c
+        });
+    });
 }
+
+function RenderDifficultySelection() {
+    process.stdout.write('\x1Bc');
+    console.log('Please select your difficulty:\n');
+
+    Difficulties.forEach((elem, index) => {
+        if (index == DifficultyIndex)
+            process.stdout.write('> ');
+        else
+            process.stdout.write('  ');
+
+        switch (index) {
+            case 0:
+                process.stdout.write(chalk.greenBright('Easy'));
+                break;
+            case 1:
+                process.stdout.write(chalk.yellowBright('Medium'));
+            break;
+            case 2:
+                process.stdout.write(chalk.hex('#ff9100ff')('Hard'));
+            break;
+            case 3:
+                process.stdout.write(chalk.red('Unbeatable'));
+            break;
+        };
+        process.stdout.write('\n')
+    });
+
+    console.log('\nPress Enter to continue.');
+};
+
+async function MonkeyEmotion(board, emotion) {
+    process.stdout.write('\x1Bc');
+
+    switch (emotion) {
+        case 'think':
+                console.log(await terminalImage.file('./assets/monkey-pondering.png', {width: 36}) + '\n');
+                console.log('* ...\n');
+            break;
+        case 'idea':
+            console.log(await terminalImage.file('./assets/monkey-idea.png', {width: 36}) + '\n');
+            console.log('* ..!\n');
+            break;
+        default:
+            break;
+    };
+
+    printBoard(board);
+    console.log(chalk.grey(`Score: ${evaluateBoard(board)}`));
+};
 
 export async function Move(board, selectedIndex) {
     process.stdout.write('\x1Bc');
@@ -73,19 +160,25 @@ export async function Move(board, selectedIndex) {
 
                 rl.close()
                 
+                await MonkeyEmotion(board, 'think');
+
                 const nextBoard = movePiece(board, selectedIndex, targetIndex, targetDestroyed)
-                let PredictedMove = getAllMoves(new Int8Array(nextBoard), -1, -1, 0, true, 2);
+                const BestMove = Minimax(new Int8Array(nextBoard), -1, Depth); 
 
                 const ContinuePrompt = readline.createInterface({ input, output });
-                await ContinuePrompt.question('Press enter to continue.');
+
+                await delay(500);
+                await MonkeyEmotion(board, 'idea');
+
+                await ContinuePrompt.question('\nPress enter to continue.');
                 ContinuePrompt.close();
 
-                Move(new Int8Array(PredictedMove.board));
+                Move(new Int8Array(BestMove));
                 break;
             }
         }
-
-        console.log(`Score: ${evaluateBoard(board)}`);
+        
+        console.log(chalk.grey(`Score: ${evaluateBoard(board)}`));
 
         const answer = await rl.question('\nSelect your piece: ');
         const n = Number(answer.trim());
@@ -111,4 +204,4 @@ export async function Move(board, selectedIndex) {
         Move(board, selectedIndexExport)
         break;
   }
-}
+};

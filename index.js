@@ -11,9 +11,24 @@ const board = createNewGame();
 console.clear();
 
 (async () => {
+    const stdin = process.stdin;
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+
+    stdin.on('data', function onKey(key) {
+        if (key === '\u0003') process.exit(); // exit game
+    });
+
     try {
         const title = await readFile('./assets/game-title.txt', 'utf8');
         console.log(title);
+        
+        const rl = readline.createInterface({ input, output });
+
+        try {
+            await rl.question('Press Enter to start the game.');
+        } finally { rl.close(); }
     
         await gameInit(board);
     } catch (err) {
