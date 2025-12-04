@@ -1,52 +1,68 @@
 export function getPossibleMoves(board, selectedIndex, sign) {
-    let result = sign >= 0 ? getPossibleMovesWhite(board, selectedIndex) : getPossibleMovesBlack(board, selectedIndex);
-    return result;
-}
+    const isKing = Math.abs(board[selectedIndex]) == 2 ? true : false;
+    let result;
 
-function getPossibleMovesWhite(board, selectedIndex) {
+    if (isKing) 
+        result = sign <= 0 ? getPossibleMovesUp(board, selectedIndex) : getPossibleMovesDown(board, selectedIndex);
+    else 
+        result = sign >= 0 ? getPossibleMovesUp(board, selectedIndex) : getPossibleMovesDown(board, selectedIndex);
+
+    return result;
+};
+
+function getPossibleMovesUp(board, selectedIndex) {
     const moves = { left: undefined, right: undefined };
     const captured = { left: undefined, right: undefined };
     const piece = board[selectedIndex];
-    if (piece !== 1 && piece !== 2) return moves; 
+    const sign = Math.sign(piece);
     
     const rowLength = 4;
-
     const row = Math.floor(selectedIndex / rowLength);
     const isEvenRow = row % 2 === 0;
 
     const forwardLeft = selectedIndex - (isEvenRow ? 4 : 5);
-    const forwardRight = selectedIndex - (isEvenRow ? 3 : 4); 
+    const forwardRight = selectedIndex - (isEvenRow ? 3 : 4);
 
-    const CurrentRow = Math.floor(selectedIndex / rowLength)
-    const LeftRow = Math.floor(forwardLeft / rowLength)
-    const RightRow = Math.floor(forwardRight / rowLength)
+    const currentRow = row;
+    const leftRow = Math.floor(forwardLeft / rowLength);
+    const rightRow = Math.floor(forwardRight / rowLength);
 
-    if (forwardLeft >= 0 && board[forwardLeft] === 0 && Math.abs(CurrentRow - LeftRow) <= 1) moves.left = forwardLeft;
-    if (forwardRight >= 0 && board[forwardRight] === 0 && Math.abs(CurrentRow - RightRow) <= 1) moves.right = forwardRight;
+    if (forwardLeft >= 0 && board[forwardLeft] === 0 && Math.abs(currentRow - leftRow) === 1)
+        moves.left = forwardLeft;
+    if (forwardRight >= 0 && board[forwardRight] === 0 && Math.abs(currentRow - rightRow) === 1)
+        moves.right = forwardRight;
 
-    const jumpLeft = selectedIndex - 9;
-    const jumpRight = selectedIndex - 7;
+    const jumpLeft = selectedIndex - (isEvenRow ? 9 : 9); 
+    const jumpRight = selectedIndex - (isEvenRow ? 7 : 7);
 
     if (
         jumpLeft >= 0 &&
-        board[forwardLeft] < 0 && 
+        Math.sign(board[forwardLeft]) != sign && 
+        board[forwardLeft] != 0 && 
         board[jumpLeft] === 0
-    ) { moves.left = jumpLeft; captured.left = (isEvenRow ? jumpLeft + 5 : jumpLeft + 4)};
+    ) { 
+        moves.left = jumpLeft; 
+        captured.left = forwardLeft;
+    };
 
     if (
         jumpRight >= 0 &&
-        board[forwardRight] < 0 &&
+        Math.sign(board[forwardRight]) != sign && 
+        board[forwardRight] != 0 &&
         board[jumpRight] === 0
-    ) { moves.right = jumpRight; captured.right = (isEvenRow ? jumpRight + 4 : jumpRight + 3) };
+    ) { 
+        moves.right = jumpRight; 
+        captured.right = forwardRight;
+    };
 
     return [moves, captured];
-}
+};
 
-export function getPossibleMovesBlack(board, selectedIndex) {
+export function getPossibleMovesDown(board, selectedIndex) {
     const moves = { left: undefined, right: undefined };
     const captured = { left: undefined, right: undefined };
     const piece = board[selectedIndex];
-    if (piece !== -1) return [moves, captured];
+    const sign = Math.sign(piece);
 
     const rowLength = 4;
     const row = Math.floor(selectedIndex / rowLength);
@@ -75,7 +91,8 @@ export function getPossibleMovesBlack(board, selectedIndex) {
 
     if (
         jumpLeft < 32 &&
-        board[midLeft] > 0 &&
+        Math.sign(board[midLeft]) != sign && 
+        board[midLeft] != 0 &&
         board[jumpLeft] === 0 &&
         jumpLeftRow === row + 2
     ) {
@@ -85,7 +102,8 @@ export function getPossibleMovesBlack(board, selectedIndex) {
 
     if (
         jumpRight < 32 &&
-        board[midRight] > 0 &&
+        Math.sign(board[midRight]) != sign && 
+        board[midRight] != 0 &&
         board[jumpRight] === 0 &&
         jumpRightRow === row + 2
     ) {
@@ -94,4 +112,4 @@ export function getPossibleMovesBlack(board, selectedIndex) {
     }
 
     return [moves, captured];
-}
+};

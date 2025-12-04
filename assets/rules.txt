@@ -1,0 +1,6 @@
+Rules:
+  You control the white pieces. Each move allows you to advance a single piece by one tile. You may capture an opponent's piece by jumping over it when it is directly reachable. A piece that reaches the far end of the board is promoted to a king, gaining the ability to move in the opposite direction. White kings move downward; black kings move upward. A king that returns to its original home row reverts to a regular pawn, regaining its original movement direction. The goal is to eliminate all opposing pieces or block them so they cannot move.
+
+Scoring weights:
+  White piece: +1
+  Black piece: -1

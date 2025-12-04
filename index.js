@@ -4,7 +4,7 @@ import { readFile } from 'fs/promises';
 
 import { stdin as input, stdout as output } from 'process';
 import { createNewGame } from './modules/new-board.js';
-import { printBoard } from './modules/print-board.js';
+import chalk from 'chalk';
 import { gameInit } from './modules/game-init.js';
 
 const board = createNewGame();
@@ -27,7 +27,10 @@ console.clear();
         const rl = readline.createInterface({ input, output });
 
         try {
-            await rl.question('Press Enter to start the game.');
+            console.log(chalk.greenBright('Press Enter to start the game.\n'))
+            await PrintRules();
+            
+            await rl.question('');
         } finally { rl.close(); }
     
         await gameInit(board);
@@ -36,5 +39,14 @@ console.clear();
     }
 })();
 
+async function PrintRules() {
+    const stdin = process.stdin;
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+    
+    const title = await readFile('./assets/rules.txt', 'utf8');
+    console.log(chalk.grey(title));
+};
 // console.log(await terminalImage.file('./assets/monkey-idea.png', {width: 40}));
 // console.log(await terminalImage.file('./assets/monkey-pondering.png', {width: 40}));

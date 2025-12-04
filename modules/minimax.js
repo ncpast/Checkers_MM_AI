@@ -30,7 +30,7 @@ function alphaBeta(board, player, depth, alpha, beta, maximizingPlayer) {
             if (alpha >= beta) break;
         };
 
-        return { score: bestScore, board: bestBoard };
+        return { score: bestScore, board: bestBoard ?? moves[0] };
     } else {
         let bestScore = Infinity;
 
@@ -46,6 +46,6 @@ function alphaBeta(board, player, depth, alpha, beta, maximizingPlayer) {
             if (alpha >= beta) break;
         };
 
-        return { score: bestScore, board: bestBoard };
+        return { score: bestScore, board: bestBoard ?? moves[0] };
     };
 };

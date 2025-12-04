@@ -8,4 +8,14 @@ export function createNewGame() {
   for (let i = 20; i < 32; i++) squares[i] = 1;
 
   return squares;
-}
+  return [
+    0, 0, 0, 0,  
+    0, 0, 0, 0,  
+    1, 1, 2, 1,
+    0, 0, 0, 0,
+    -1, -2, -1, -1,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+  ];
+};

@@ -46,7 +46,6 @@ async function SelectDifficulty() {
                 stdin.setRawMode(false);
 
                 Depth = Difficulties[DifficultyIndex];
-                console.log(Depth);
 
                 resolve();                 
             }
@@ -98,15 +97,49 @@ async function MonkeyEmotion(board, emotion) {
             console.log(await terminalImage.file('./assets/monkey-idea.png', {width: 36}) + '\n');
             console.log('* ..!\n');
             break;
+        case 'loss':
+            console.log(await terminalImage.file('./assets/monkey-loss.png', {width: 36}) + '\n');
+            console.log('* You\'ve won.\n');
+            break;
+        case 'victory':
+            console.log(await terminalImage.file('./assets/monkey-laugh.png', {width: 36}) + '\n');
+            console.log('* You\'ve lost!\n');
+            break;
         default:
             break;
     };
 
     printBoard(board);
-    console.log(chalk.grey(`Score: ${evaluateBoard(board)}`));
+    console.log(chalk.grey(`Score: ${evaluateBoard(board) * -1}`));
 };
 
 export async function Move(board, selectedIndex) {
+    const countPieces = color => {
+        let n = 0;
+        board.forEach((elem) => {
+            switch (color) {
+                case 'w':
+                    if (elem > 0) n++;
+                    break;
+                case 'b':
+                    if (elem < 0) n--;
+                    break;
+                default:
+                    break;
+            };
+        });
+        return n;
+    };
+
+    if (countPieces('b') === 0) { 
+        await MonkeyEmotion(board, 'loss');
+        process.exit();    
+    };
+    if (countPieces('w') === 0) {
+        await MonkeyEmotion(board, 'victory');
+        process.exit();
+    };
+
     process.stdout.write('\x1Bc');
     console.log(await terminalImage.file('./assets/icon.png', {width: 36}) + '\n');
     console.log('* Now is your turn.\n');
@@ -118,13 +151,13 @@ export async function Move(board, selectedIndex) {
 
     while (true) {
         let PossibleMoves, targetDestroyed;
-        if (selectedIndex) {
+        if (selectedIndex != undefined) {
             const Captured = getPossibleMoves(board, selectedIndex, 1)[1];
             PossibleMoves = getPossibleMoves(board, selectedIndex, 1)[0];
             console.log(chalk.blueBright(`Selected: ${selectedIndex}, Possible moves: L - ${PossibleMoves.left}, R - ${PossibleMoves.right}, 
                 Possible destroyed: L - ${Captured.left}, R - ${Captured.right}.`));
 
-            if (!PossibleMoves.left && !PossibleMoves.right) {
+            if (PossibleMoves.left == undefined && PossibleMoves.right == undefined) {
                 console.log('\nNo valid moves available.');
                 selectedIndex = null;
                 continue;
@@ -154,31 +187,34 @@ export async function Move(board, selectedIndex) {
                         break;
                     }
                 } else { 
-                    targetIndex = PossibleMoves.left ? PossibleMoves.left : PossibleMoves.right;
-                    targetDestroyed = Captured.left;
+                    targetIndex = PossibleMoves.left ?? PossibleMoves.right;
+                    targetDestroyed = Captured.left ?? Captured.right;
                 }
 
                 rl.close()
+
+                const nextBoard = movePiece(board, selectedIndex, targetIndex, targetDestroyed);
                 
-                await MonkeyEmotion(board, 'think');
-
-                const nextBoard = movePiece(board, selectedIndex, targetIndex, targetDestroyed)
-                const BestMove = Minimax(new Int8Array(nextBoard), -1, Depth); 
-
-                const ContinuePrompt = readline.createInterface({ input, output });
-
-                await delay(500);
-                await MonkeyEmotion(board, 'idea');
-
-                await ContinuePrompt.question('\nPress enter to continue.');
-                ContinuePrompt.close();
+                let BestMove = nextBoard;
+                //if (!targetDestroyed) {
+                    await MonkeyEmotion(board, 'think');
+                    
+                    BestMove = Minimax(new Int8Array(nextBoard), -1, Depth); 
+                    const ContinuePrompt = readline.createInterface({ input, output });
+                    
+                    await delay(500);
+                    await MonkeyEmotion(BestMove, 'idea');
+                    
+                    await ContinuePrompt.question('\nPress enter to continue.');
+                    ContinuePrompt.close();
+                //};
 
                 Move(new Int8Array(BestMove));
                 break;
             }
         }
         
-        console.log(chalk.grey(`Score: ${evaluateBoard(board)}`));
+        console.log(chalk.grey(`Score: ${evaluateBoard(board) * -1}`));
 
         const answer = await rl.question('\nSelect your piece: ');
         const n = Number(answer.trim());
