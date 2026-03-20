@@ -2,6 +2,8 @@
 
 A terminal-based checkers game where you play against a monkey powered by a Minimax AI with alpha-beta pruning. Built for the *Artificial Intelligence in Videogames* class of 2025.
 
+https://github.com/ncpast/Checkers_MM_AI/blob/main/thumbnail.mov
+
 ## Setup
 
 ```bash
